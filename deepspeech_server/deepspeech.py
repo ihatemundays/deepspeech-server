@@ -101,7 +101,7 @@ def make_driver(loop=None):
                                 context=item.context,
                             )))
                         finally:
-                            shutil.rmtree(temp_dir)
+                            pass  # shutil.rmtree(temp_dir)
                 elif type(item) is Initialize:
                     log("initialize: {}".format(item))
                     ds_model = setup_model(
