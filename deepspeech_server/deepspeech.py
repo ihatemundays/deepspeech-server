@@ -65,7 +65,8 @@ def make_driver(loop=None):
                 if type(item) is SpeechToText:
                     if ds_model is not None:
                         temp_dir = tempfile.mkdtemp()
-                        temp_filepath = temp_dir + "/output.wav"
+                        input_temp_filepath = temp_dir + "/input.wav"
+                        output_temp_filepath = temp_dir + "/output.wav"
 
                         try:
                             # ffmpeg -i input.wav -acodec pcm_s16le -ac 1 -ar 16000 -af lowpass=3000,highpass=200 ...
@@ -73,12 +74,17 @@ def make_driver(loop=None):
                             # sox input.wav -b 16 output.wav channels 1 rate 16k sinc 200-3k -
 
                             # Cleanup WAV file
+                            original_file = io.BytesIO(item.data)
+
+                            with open(input_temp_filepath, 'wb') as input_file:
+                                input_file.write(original_file.read())
+
                             cbn = sox.Transformer()
                             cbn.convert(samplerate=16000, n_channels=1, bitdepth=8)
                             cbn.bandpass(3000, 200)
-                            cbn.build(io.BytesIO(item.data), temp_filepath)
+                            cbn.build(input_temp_filepath, output_temp_filepath)
 
-                            fs, audio = wav.read(open(temp_filepath, 'rb'))
+                            fs, audio = wav.read(open(input_temp_filepath, 'rb'))
 
                             if len(audio.shape) > 1:
                                 audio = audio[:, 0]
