@@ -64,26 +64,21 @@ def make_driver(loop=None):
 
                 if type(item) is SpeechToText:
                     if ds_model is not None:
+                        temp_dir = tempfile.mkdtemp()
+                        temp_filepath = temp_dir + "/output.wav"
+
                         try:
                             # ffmpeg -i input.wav -acodec pcm_s16le -ac 1 -ar 16000 -af lowpass=3000,highpass=200 ...
                             #   output.wav
                             # sox input.wav -b 16 output.wav channels 1 rate 16k sinc 200-3k -
 
                             # Cleanup WAV file
-                            temp_dir = tempfile.mkdtemp()
-                            temp_filepath = temp_dir + "/output.wav"
+                            cbn = sox.Combiner()
+                            cbn.convert(samplerate=16000, n_channels=1, bitdepth=8)
+                            cbn.bandpass(3000, 200)
+                            cbn.build(io.BytesIO(item.data), temp_filepath)
 
-                            try:
-                                cbn = sox.Combiner()
-                                cbn.convert(samplerate=16000, n_channels=1, bitdepth=8)
-                                cbn.bandpass(3000, 200)
-                                cbn.build(io.BytesIO(item.data), temp_filepath)
-
-                                fs, audio = wav.read(open(temp_filepath, 'rb'))
-                            except:
-                                pass
-                            finally:
-                                shutil.rmtree(temp_dir)
+                            fs, audio = wav.read(open(temp_filepath, 'rb'))
 
                             if len(audio.shape) > 1:
                                 audio = audio[:, 0]
@@ -99,6 +94,8 @@ def make_driver(loop=None):
                                 error=e,
                                 context=item.context,
                             )))
+                        finally:
+                            shutil.rmtree(temp_dir)
                 elif type(item) is Initialize:
                     log("initialize: {}".format(item))
                     ds_model = setup_model(
