@@ -113,7 +113,7 @@ def deepspeech_server(sources):
             httpd.Initialize(request_max_size=i.server.http.request_max_size),
             httpd.AddRoute(
                 methods=['POST'],
-                path='/stt',
+                path='/api/stt',
                 id='stt',
             ),
             httpd.StartServer(

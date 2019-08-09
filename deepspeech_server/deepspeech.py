@@ -8,6 +8,10 @@ from cyclotron import Component
 from cyclotron_std.logging import Log
 from deepspeech import Model
 
+# For conversion
+import sox
+import tempfile
+import shutil
 
 Sink = namedtuple('Sink', ['speech'])
 Source = namedtuple('Source', ['text', 'log'])
@@ -61,9 +65,26 @@ def make_driver(loop=None):
                 if type(item) is SpeechToText:
                     if ds_model is not None:
                         try:
-                            fs, audio = wav.read(io.BytesIO(item.data))
-                            # convert to mono.
-                            # todo: move to a component or just a function here
+                            # ffmpeg -i input.wav -acodec pcm_s16le -ac 1 -ar 16000 -af lowpass=3000,highpass=200 ...
+                            #   output.wav
+                            # sox input.wav -b 16 output.wav channels 1 rate 16k sinc 200-3k -
+
+                            # Cleanup WAV file
+                            temp_dir = tempfile.mkdtemp()
+                            temp_filepath = temp_dir + "/output.wav"
+
+                            try:
+                                cbn = sox.Combiner()
+                                cbn.convert(samplerate=16000, n_channels=1, bitdepth=8)
+                                cbn.bandpass(3000, 200)
+                                cbn.build(io.BytesIO(item.data), temp_filepath)
+
+                                fs, audio = wav.read(open(temp_filepath, 'rb'))
+                            except:
+                                pass
+                            finally:
+                                shutil.rmtree(temp_dir)
+
                             if len(audio.shape) > 1:
                                 audio = audio[:, 0]
                             text = ds_model.stt(audio, fs)
