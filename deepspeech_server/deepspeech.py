@@ -87,7 +87,7 @@ def make_driver(loop=None):
 
                             # Convert WAV file to a cleaner representation that will be better for inference.
                             cbn = sox.Transformer()
-                            cbn.set_output_format(rate=16000, channels=1, depth=16, encoding="signed-integer")
+                            cbn.set_output_format(rate=16000, channels=1, bits=16, encoding="signed-integer")
                             cbn.noisered(noise_prof_temp_filepath, 0.05)
                             cbn.gain(-6.0)
                             cbn.bass(-6.0)
