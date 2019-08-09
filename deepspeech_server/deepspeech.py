@@ -87,10 +87,11 @@ def make_driver(loop=None):
 
                             # Convert WAV file to a cleaner representation that will be better for inference.
                             cbn = sox.Transformer()
+                            cbn.set_globals(dither=True, guard=True, replay_gain=True, verbosity=4)
                             cbn.convert(samplerate=16000, n_channels=1, bitdepth=16)
                             cbn.noisered(noise_prof_temp_filepath, 0.21)
-                            cbn.gain(-6.0)
-                            cbn.treble(+6.0)
+                            cbn.bass(+20.0)
+                            cbn.treble(+20.0)
                             cbn.build(input_temp_filepath, output_temp_filepath)
                             fs, audio = wav.read(open(output_temp_filepath, 'rb'))
 
