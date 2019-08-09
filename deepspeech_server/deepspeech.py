@@ -74,10 +74,8 @@ def make_driver(loop=None):
                             # sox input.wav -b 16 output.wav channels 1 rate 16k sinc 200-3k -
 
                             # Cleanup WAV file
-                            original_file = io.BytesIO(item.data)
-
                             with open(input_temp_filepath, 'wb') as input_file:
-                                input_file.write(original_file.read())
+                                shutil.copyfileobj(io.BytesIO(item.data), input_file, length=13072)
 
                             cbn = sox.Transformer()
                             cbn.convert(samplerate=16000, n_channels=1, bitdepth=8)
