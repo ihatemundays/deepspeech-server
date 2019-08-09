@@ -78,7 +78,7 @@ def make_driver(loop=None):
                             wav.write(input_temp_filepath, fs, audio)
                             cbn = sox.Transformer()
                             cbn.convert(samplerate=16000, n_channels=1, bitdepth=16)
-                            cbn.sinc('pass', [3000, 200])
+                            cbn.sinc('pass', [200, 3000])
                             cbn.build(input_temp_filepath, output_temp_filepath)
                             fs, audio = wav.read(open(output_temp_filepath, 'rb'))
 
