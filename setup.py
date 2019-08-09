@@ -20,6 +20,7 @@ install_requires = [
     'cyclotron>=0.5',
     'cyclotron-aio>=0.5',
     'cyclotron-std>=0.4',
+    'sox'
 ]
 
 setup(
