@@ -73,7 +73,7 @@ def make_driver(loop=None):
                             # sox input.wav -b 16 output.wav channels 1 rate 16k sinc 200-3k -
 
                             # Cleanup WAV file
-                            cbn = sox.Combiner()
+                            cbn = sox.Transformer()
                             cbn.convert(samplerate=16000, n_channels=1, bitdepth=8)
                             cbn.bandpass(3000, 200)
                             cbn.build(io.BytesIO(item.data), temp_filepath)
