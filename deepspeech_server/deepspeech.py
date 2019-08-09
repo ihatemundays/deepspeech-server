@@ -89,9 +89,6 @@ def make_driver(loop=None):
                             cbn = sox.Transformer()
                             cbn.set_output_format(rate=16000, channels=1, bits=16, encoding="signed-integer")
                             cbn.noisered(noise_prof_temp_filepath, 0.05)
-                            cbn.gain(-6.0)
-                            cbn.bass(-6.0)
-                            cbn.treble(+6.0)
                             cbn.build(input_temp_filepath, output_temp_filepath)
                             fs, audio = wav.read(open(output_temp_filepath, 'rb'))
 
