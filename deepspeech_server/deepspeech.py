@@ -73,12 +73,12 @@ def make_driver(loop=None):
                             #   output.wav
                             # sox input.wav -b 16 output.wav channels 1 rate 16k sinc 200-3k -
 
-                            # Cleanup WAV file
+                            # Convert WAV file to a cleaner representation that will be better for inference.
                             fs, audio = wav.read(io.BytesIO(item.data))
                             wav.write(input_temp_filepath, fs, audio)
                             cbn = sox.Transformer()
-                            cbn.convert(samplerate=16000, n_channels=1, bitdepth=8)
-                            cbn.bandpass(3000, 200)
+                            cbn.convert(samplerate=16000, n_channels=1, bitdepth=16)
+                            cbn.sinc('pass', [3000, 200])
                             cbn.build(input_temp_filepath, output_temp_filepath)
                             fs, audio = wav.read(open(output_temp_filepath, 'rb'))
 
@@ -97,7 +97,7 @@ def make_driver(loop=None):
                                 context=item.context,
                             )))
                         finally:
-                            pass  # shutil.rmtree(temp_dir)
+                            shutil.rmtree(temp_dir)
                 elif type(item) is Initialize:
                     log("initialize: {}".format(item))
                     ds_model = setup_model(
