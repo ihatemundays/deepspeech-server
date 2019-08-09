@@ -65,6 +65,8 @@ def make_driver(loop=None):
                 if type(item) is SpeechToText:
                     if ds_model is not None:
                         temp_dir = tempfile.mkdtemp()
+                        noise_temp_filepath = temp_dir + "/noise.wav"
+                        noise_prof_temp_filepath = temp_dir + "/noise.prof"
                         input_temp_filepath = temp_dir + "/input.wav"
                         output_temp_filepath = temp_dir + "/output.wav"
 
@@ -73,12 +75,22 @@ def make_driver(loop=None):
                             #   output.wav
                             # sox input.wav -b 16 output.wav channels 1 rate 16k sinc 200-3k -
 
-                            # Convert WAV file to a cleaner representation that will be better for inference.
                             fs, audio = wav.read(io.BytesIO(item.data))
                             wav.write(input_temp_filepath, fs, audio)
+
+                            # Get noise profile
+                            noise = sox.Transformer()
+                            noise.trim(0.0, 0.1)
+                            noise.build(input_temp_filepath, noise_temp_filepath)
+                            noise_prof = sox.Transformer()
+                            noise_prof.noiseprof(noise_temp_filepath, noise_prof_temp_filepath)
+
+                            # Convert WAV file to a cleaner representation that will be better for inference.
                             cbn = sox.Transformer()
                             cbn.convert(samplerate=16000, n_channels=1, bitdepth=16)
-                            cbn.sinc('pass', [200, 3000])
+                            cbn.noisered(noise_prof_temp_filepath, 0.21)
+                            cbn.gain(-6.0)
+                            cbn.treble(+6.0)
                             cbn.build(input_temp_filepath, output_temp_filepath)
                             fs, audio = wav.read(open(output_temp_filepath, 'rb'))
 
